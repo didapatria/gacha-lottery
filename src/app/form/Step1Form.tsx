@@ -19,6 +19,7 @@ interface Step1FormData {
 const Step1Form: React.FC<Step1FormProps> = ({ initialValues, onNext }) => {
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<Step1FormData>();
   const [receiptPreviews, setReceiptPreviews] = useState<string[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<number[]>([]);
 
   useEffect(() => {
     if (initialValues) {
@@ -38,8 +39,23 @@ const Step1Form: React.FC<Step1FormProps> = ({ initialValues, onNext }) => {
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const previews = acceptedFiles.map(file => URL.createObjectURL(file));
-    setReceiptPreviews(previews);
-  }, []);
+    setReceiptPreviews(prevPreviews => [...prevPreviews, ...previews]);
+    const progressArray = new Array(acceptedFiles.length).fill(0);
+    setUploadProgress(prevProgress => [...prevProgress, ...progressArray]);
+
+    acceptedFiles.forEach((file, index) => {
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prevProgress => {
+          const newProgress = [...prevProgress];
+          newProgress[receiptPreviews.length + index] += 10;
+          if (newProgress[receiptPreviews.length + index] >= 100) {
+            clearInterval(progressInterval);
+          }
+          return newProgress;
+        });
+      }, 100);
+    });
+  }, [receiptPreviews]);
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
@@ -49,6 +65,11 @@ const Step1Form: React.FC<Step1FormProps> = ({ initialValues, onNext }) => {
     },
     multiple: true
   });
+
+  const handleRemoveImage = (index: number) => {
+    setReceiptPreviews(prevPreviews => prevPreviews.filter((_, i) => i !== index));
+    setUploadProgress(prevProgress => prevProgress.filter((_, i) => i !== index));
+  };
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
@@ -99,16 +120,35 @@ const Step1Form: React.FC<Step1FormProps> = ({ initialValues, onNext }) => {
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700">Upload Photo of Sales Receipt</label>
-        <div {...getRootProps()} className="border-2 border-dashed border-gray-300 p-4 rounded-md mt-1 cursor-pointer text-center">
-          <input {...getInputProps()} />
-          <p>Drag 'n' drop some files here, or click to select files</p>
-          <em className="text-sm">(Only *.jpeg and *.png images will be accepted)</em>
-        </div>
-        <div className="flex space-x-2 overflow-x-auto mt-2">
-          {receiptPreviews.map((preview, index) => (
-            <img key={index} src={preview} alt="Receipt Preview" className="h-24 w-auto rounded-md shadow-md" />
-          ))}
-        </div>
+        {receiptPreviews.length === 0 ? (
+          <div {...getRootProps()} className="border-2 border-dashed border-gray-300 p-4 rounded-md mt-1 cursor-pointer text-center">
+            <input {...getInputProps()} />
+            <p>Drag 'n' drop some files here, or click to select files</p>
+            <em className="text-sm">(Only *.jpeg and *.png images will be accepted)</em>
+          </div>
+        ) : (
+          <div className="flex space-x-2 overflow-x-auto mt-2">
+            {receiptPreviews.map((preview, index) => (
+              <div key={index} className="relative flex-shrink-0 h-24 rounded-md shadow-md my-1">
+                <img src={preview} alt="Receipt Preview" className="h-full rounded-md" />
+                <button
+                  type="button"
+                  className="absolute -top-1 -right-1 w-6 bg-red-400 hover:bg-red-500 text-white rounded-full aspect-square"
+                  onClick={() => handleRemoveImage(index)}
+                >
+                  &times;
+                </button>
+                {uploadProgress[index] < 100 && (
+                  <div className="absolute bottom-0 left-0 right-0 bg-blue-500 h-1" style={{ width: `${uploadProgress[index]}%` }} />
+                )}
+              </div>
+            ))}
+            <div {...getRootProps()} className="h-24 w-24 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center cursor-pointer">
+              <input {...getInputProps()} />
+              <span className="text-2xl text-gray-500 px-10">+</span>
+            </div>
+          </div>
+        )}
       </div>
       <button
         type="submit"
