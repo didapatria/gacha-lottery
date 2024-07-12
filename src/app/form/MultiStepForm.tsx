@@ -38,20 +38,20 @@ const MultiStepForm: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-4xl bg-white shadow-md rounded-lg overflow-hidden flex">
-      <div className="w-1/4 bg-gray-100 p-4">
-        <div className="space-y-4">
-          <div className={`flex items-center ${step === 1 ? 'font-bold' : ''}`}>
-            <span className={`w-8 h-8 flex items-center justify-center rounded-full ${step === 1 ? 'bg-blue-500' : 'bg-gray-300'}  text-white mr-2`}>1</span>
+    <div className="w-full max-w-4xl bg-white shadow-md rounded-lg overflow-hidden md:flex block">
+      <div className="w-full md:w-1/4 bg-gray-100 p-4">
+        <div className="space-y-0 md:space-y-4 space-x-4 md:space-x-0 flex md:flex-col flex-row md:items-start">
+          <div className={`flex flex-row items-center ${step === 1 ? 'font-bold' : ''}`}>
+            <span className={`w-8 aspect-square flex items-center justify-center rounded-full ${step === 1 ? 'bg-blue-500' : 'bg-gray-300'}  text-white mr-2`}>1</span>
             Step 1: Form Input
           </div>
-          <div className={`flex items-center ${step === 2 ? 'font-bold' : ''}`}>
-            <span className={`w-8 h-8 flex items-center justify-center rounded-full ${step === 2 ? 'bg-blue-500' : 'bg-gray-300'}  text-white mr-2`}>2</span>
+          <div className={`flex flex-row items-center ${step === 2 ? 'font-bold' : ''}`}>
+            <span className={`w-8 aspect-square flex items-center justify-center rounded-full ${step === 2 ? 'bg-blue-500' : 'bg-gray-300'}  text-white mr-2`}>2</span>
             Step 2: Bonus Entry
           </div>
         </div>
       </div>
-      <div className="w-3/4 p-6">
+      <div className="md:w-3/4 w-full p-6">
         <div className="space-y-6">
           {step === 1 && <Step1Form initialValues={formData} onNext={handleNext} />}
           {step === 2 && <Step2Form initialValues={formData} onBack={handleBack} onSubmit={handleSubmit} />}
